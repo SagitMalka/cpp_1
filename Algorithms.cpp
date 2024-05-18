@@ -33,7 +33,7 @@ namespace ariel{
 
     int ariel::Algorithms::isConnected(ariel::Graph &graph) {
         const vector<vector<int>>& adjMatrix = graph.getAdjMatrix();
-        size_t v_size = graph.getNumberOfVertices();
+        size_t v_size = graph.getAdjMatrix().size();
 
         unordered_set<int> visited;
 
@@ -128,20 +128,27 @@ namespace ariel{
     }
     string Algorithms::ConstructSets(const unordered_set<int>& setA, unordered_set<int> setB) {
         string result = "The graph is bipartite: A={";
+        bool first_vertex = true;
         for (int vertex : setA) {
-            result += std::to_string(vertex) + ",";
+            if(!first_vertex){
+                result += ", ";
+            }
+            result += std::to_string(vertex);
+            first_vertex = false;
         }
-        if (!setA.empty()) {
-            result.pop_back(); // Remove the last comma
-        }
+//        if (!setA.empty()) {
+//            result.pop_back(); // Remove the last comma
+//        }
+        first_vertex = true;
         result += "}, B={";
         for (int vertex : setB) {
-            result += std::to_string(vertex) + ",";
+            if(!first_vertex){
+                result += ", ";
+            }
+            result += std::to_string(vertex);
+            first_vertex = false;
         }
-        if (!setB.empty()) {
-            result.pop_back(); // Remove the last comma
-        }
-        result += "}.";
+        result += "}";
 
         return result;
     }
