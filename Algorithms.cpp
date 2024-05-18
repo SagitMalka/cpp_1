@@ -1,0 +1,262 @@
+//
+// Created by SAGIT on 18/05/2024.
+//
+
+#include "Algorithms.hpp"
+#include <unordered_set>
+#include <string>
+#include <limits>
+#include <stdexcept>
+#include <sstream>
+#include <iostream>
+#include <queue>
+#include <unordered_map>
+#include <stack>
+
+using std::vector;
+using std::unordered_set;
+using std::string;
+using std::ostringstream;
+using std::stack;
+using std::queue;
+using std::unordered_map;
+using std::list;
+using std::pair;
+using std::make_pair;
+
+
+
+namespace ariel{
+
+
+
+
+    int ariel::Algorithms::isConnected(ariel::Graph &graph) {
+        const vector<vector<int>>& adjMatrix = graph.getAdjMatrix();
+        size_t v_size = graph.getNumberOfVertices();
+
+        unordered_set<int> visited;
+
+        traverse(0, adjMatrix, visited, v_size);
+
+        return visited.size() == v_size? 1: 0;
+    }
+
+    void Algorithms::traverse(int u, const vector<vector<int>> &adjacencyMatrix, unordered_set<int> &visited, size_t v_size) {
+        visited.insert(u);
+        for (int i = 0; i < v_size; ++i) {
+            if (adjacencyMatrix[u][i] && visited.find(i) == visited.end()) {
+                traverse(i, adjacencyMatrix, visited, v_size);
+            }
+        }
+    }
+    string Algorithms::shortestPath(const Graph& g, int source, int dest) {
+        const vector<int>& parents = bellmanFord(g, source, dest);
+        if(parents[dest] == std::numeric_limits<int>::max()){
+            return "-1";
+        }
+        ostringstream oss = constructPath(source, dest, parents);
+
+        return oss.str();
+
+    }
+    vector<int> Algorithms::bellmanFord(const Graph& graph, int source, int destination) {
+        const vector<vector<int>>& adjMatrix = graph.getAdjMatrix();
+        int num_of_vertices;
+        num_of_vertices = adjMatrix.size();
+        vector<int> distance(num_of_vertices, std::numeric_limits<int>::max());
+        vector<int> parents(num_of_vertices, -1);
+        distance[source] = 0;
+
+
+        // Relax edges repeatedly
+        for (int i = 0; i < num_of_vertices - 1; ++i) {
+            for (int u = 0; u < num_of_vertices; ++u) {
+                for (int v = 0; v < num_of_vertices; ++v) {
+                    bool hasEdge = adjMatrix[u][v] != 0;
+                    bool hasValidDistance = distance[u] != std::numeric_limits<int>::max();
+                    bool hasShorterDistance = distance[u] + adjMatrix[u][v] < distance[v];
+
+                    if (hasEdge &&  hasValidDistance && hasShorterDistance) {
+                        distance[v] = distance[u] + adjMatrix[u][v];
+                        parents[v] = u;
+                    }
+                }
+            }
+        }
+
+        // Check for negative cycles
+        for (int u = 0; u < num_of_vertices; ++u) {
+            for (int v = 0; v < num_of_vertices; ++v) {
+                if (adjMatrix[u][v] != 0 && distance[u] != std::numeric_limits<int>::max() && distance[u] + adjMatrix[u][v] < distance[v]) {
+                    throw std::runtime_error("Graph contains a negative cycle");
+                }
+            }
+        }
+
+        return parents;
+    }
+    ostringstream Algorithms::constructPath(int source, int dest, const vector<int>& parents){
+        ostringstream oss;
+        stack<int> vertices;
+
+        int curr_vertex = dest;
+
+        while (curr_vertex != source && parents[curr_vertex] != -1) {
+            vertices.push(curr_vertex);
+            curr_vertex = parents[curr_vertex];
+        }
+        vertices.push(source);
+        if(vertices.size() == 1 && vertices.top() == source) {
+            oss << "-1";
+            return oss;
+        }
+
+        while (!vertices.empty()) {
+            if(vertices.size() == 1){
+                oss << vertices.top();
+                vertices.pop();
+            }
+            else{
+                oss << vertices.top() << "->";
+                vertices.pop();
+            }
+        }
+
+
+        return oss;
+    }
+    string Algorithms::ConstructSets(const unordered_set<int>& setA, unordered_set<int> setB) {
+        string result = "The graph is bipartite: A={";
+        for (int vertex : setA) {
+            result += std::to_string(vertex) + ",";
+        }
+        if (!setA.empty()) {
+            result.pop_back(); // Remove the last comma
+        }
+        result += "}, B={";
+        for (int vertex : setB) {
+            result += std::to_string(vertex) + ",";
+        }
+        if (!setB.empty()) {
+            result.pop_back(); // Remove the last comma
+        }
+        result += "}.";
+
+        return result;
+    }
+    string Algorithms::isBipartite(const Graph &graph) {
+        const vector<vector<int>>& adjacencyMatrix = graph.getAdjMatrix();
+        int numVertices;
+        numVertices = adjacencyMatrix.size();
+
+        unordered_map<int, string> colorMap;
+        unordered_set<int> visited;
+
+        for (int i = 0; i < numVertices; ++i) {
+            if (visited.find(i) == visited.end()) {
+                std::queue<int> q;
+                q.push(i);
+                colorMap[i] = "A"; // Color the first vertex with "A"
+                visited.insert(i);
+
+                while (!q.empty()) {
+                    int u = q.front();
+                    q.pop();
+
+                    for (int v = 0; v < numVertices; ++v) {
+                        if (adjacencyMatrix[u][v] != 0) {
+                            if (visited.find(v) == visited.end()) {
+                                visited.insert(v);
+                                q.push(v);
+                                colorMap[v] = (colorMap[u] == "A") ? "B" : "A"; // Color the adjacent vertex with the opposite color
+                            } else if (colorMap[u] == colorMap[v]) {
+                                return "0";
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Construct sets A and B based on the coloring
+        std::unordered_set<int> setA, setB;
+        for (const auto& pair : colorMap) {
+            if (pair.second == "A") {
+                setA.insert(pair.first);
+            } else {
+                setB.insert(pair.first);
+            }
+        }
+
+        // Construct the output string
+        string result = ConstructSets(setA, setB);
+
+        return result;
+    }
+
+    bool Algorithms::isContainsCycle(const Graph &graph) {
+        auto adjMatrix = graph.getAdjMatrix();
+        stack<pair<int, int>> v_stack;
+        v_stack.emplace(0, -1);
+        size_t vertices = adjMatrix.size();
+        vector<bool> visited(vertices, false);
+        vector<int> parents(vertices, -1);
+        stack<int> result;
+
+        while (!v_stack.empty()) {
+            int v = v_stack.top().first;
+            int father = v_stack.top().second;
+            v_stack.pop();
+
+            if (!visited[v]) {
+                visited[v] = true;
+                auto& edges = adjMatrix[v];
+
+                for (int w = 0; w < edges.size(); ++w) {
+                    if (edges[w] != 0) {
+                        if (!visited[w]) {
+                            v_stack.emplace(w, v);
+                            parents[w] = v;
+                        } else if (w != father) {
+                            return true;
+//                            result.push(w);
+//                            int current = v;
+//                            while (current != w) {
+//                                result.push(current);
+//                                current = parents[current];
+//                            }
+//                            result.push(w);
+//                            //result.push(v); // to complete the cycle
+//                            return constructCycle(result).str();
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+
+
+
+
+    ostringstream Algorithms::constructCycle(stack<int> &vertices) {
+        ostringstream oss;
+        while (!vertices.empty()) {
+            if(vertices.size() == 1){
+                oss << vertices.top();
+                vertices.pop();
+            }
+            else{
+                oss << vertices.top() << "->";
+                vertices.pop();
+            }
+        }
+
+
+        return oss;
+    }
+
+}
+
