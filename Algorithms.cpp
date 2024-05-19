@@ -1,3 +1,7 @@
+//
+// Created by SAGIT on 18/05/2024.
+//
+
 #include "Algorithms.hpp"
 #include <unordered_set>
 #include <string>
@@ -29,25 +33,29 @@ namespace ariel{
 
     int ariel::Algorithms::isConnected(ariel::Graph &graph) {
         const vector<vector<int>>& adjMatrix = graph.getAdjMatrix();
-        size_t v_size = graph.getAdjMatrix().size();
+        int v_size = (int)graph.getAdjMatrix().size();
 
         unordered_set<int> visited;
 
         traverse(0, adjMatrix, visited, v_size);
 
-        return visited.size() == v_size? 1: 0;
+        return (int)visited.size() == v_size? 1: 0;
     }
 
-    void Algorithms::traverse(int u, const vector<vector<int>> &adjacencyMatrix, unordered_set<int> &visited, size_t v_size) {
+    void Algorithms::traverse(int u, const vector<vector<int>> &adjacencyMatrix, unordered_set<int> &visited, int v_size) {
         visited.insert(u);
         
-        for (int i = 0; i < (int)v_size; ++i) {
+        for (int i = 0; i < v_size; ++i) {
             if (adjacencyMatrix[u][i] && visited.find(i) == visited.end()) {
                 traverse(i, adjacencyMatrix, visited, v_size);
             }
         }
     }
     string Algorithms::shortestPath(const Graph& g, int source, int dest) {
+        int max_index = (int)g.getAdjMatrix().size() -1;
+        if(source > max_index || dest > max_index || source < 0 || dest < 0){
+            throw::std::range_error("Invalid source or destination");
+        }
         const vector<int>& parents = bellmanFord(g, source);
         if(parents[dest] == std::numeric_limits<int>::max()){
             return "-1";
@@ -161,7 +169,7 @@ namespace ariel{
             if (visited.find(i) == visited.end()) {
                 std::queue<int> q;
                 q.push(i);
-                colorMap[i] = "A"; // Color the first vertex with "A"
+                colorMap[i] = "A";
                 visited.insert(i);
 
                 while (!q.empty()) {
@@ -173,9 +181,9 @@ namespace ariel{
                             if (visited.find(v) == visited.end()) {
                                 visited.insert(v);
                                 q.push(v);
-                                colorMap[v] = (colorMap[u] == "A") ? "B" : "A"; // Color the adjacent vertex with the opposite color
+                                colorMap[v] = (colorMap[u] == "A") ? "B" : "A";
                             } else if (colorMap[u] == colorMap[v]) {
-                                return "0";
+                                return "The graph is not bipartite.";
                             }
                         }
                     }
@@ -264,56 +272,86 @@ namespace ariel{
 
     
 
-    bool Algorithms::negativeCycle(const Graph& graph){
-        auto adjMatrix = graph.getAdjMatrix();
-        stack<pair<int, int>> v_stack;
-        v_stack.emplace(0, -1);
-        size_t vertices = adjMatrix.size();
-        vector<bool> visited(vertices, false);
-        vector<int> parents(vertices, -1);
-        stack<int> result;
+    // bool Algorithms::negativeCycle(const Graph& graph){
+    //     auto adjMatrix = graph.getAdjMatrix();
+    //     stack<pair<int, int>> v_stack;
+    //     v_stack.emplace(0, -1);
+    //     size_t vertices = adjMatrix.size();
+    //     vector<bool> visited(vertices, false);
+    //     vector<int> parents(vertices, -1);
+    //     stack<int> result;
 
-        while (!v_stack.empty()) {
-            int v = v_stack.top().first;
-            int father = v_stack.top().second;
-            v_stack.pop();
+    //     while (!v_stack.empty()) {
+    //         int v = v_stack.top().first;
+    //         int father = v_stack.top().second;
+    //         v_stack.pop();
 
-            if (!visited[v]) {
-                visited[v] = true;
-                auto& edges = adjMatrix[v];
+    //         if (!visited[v]) {
+    //             visited[v] = true;
+    //             auto& edges = adjMatrix[v];
 
-                for (int w = 0; w < (int)edges.size(); ++w) {
-                    if (edges[w] != 0) {
-                        if (!visited[w]) {
-                            v_stack.emplace(w, v);
-                            parents[w] = v;
-                        } else if (w != father) {
-                            result.push(w);
-                            int current = v;
-                            while (current != w) {
-                               result.push(current);
-                               current = parents[current];
-                           }
-                           result.push(w);
-                           //result.push(v); 
-                            int sumEdges = 0;
-                            while (!result.empty()){
-                                int x = result.top();
-                                result.pop();
-                                if(!result.empty()){
-                                    int y = result.top();
-                                    sumEdges += adjMatrix[x][y];
-                                }
+    //             for (int w = 0; w < (int)edges.size(); ++w) {
+    //                 if (edges[w] != 0) {
+    //                     if (!visited[w]) {
+    //                         v_stack.emplace(w, v);
+    //                         parents[w] = v;
+    //                     } else if (w != father) {
+    //                         result.push(w);
+    //                         int current = v;
+    //                         while (current != w) {
+    //                            result.push(current);
+    //                            current = parents[current];
+    //                        }
+    //                        result.push(w);
+    //                        //result.push(v); 
+    //                         int sumEdges = 0;
+    //                         while (!result.empty()){
+    //                             int x = result.top();
+    //                             result.pop();
+    //                             if(!result.empty()){
+    //                                 int y = result.top();
+    //                                 sumEdges += adjMatrix[x][y];
+    //                             }
                                 
-                           }
-                           return sumEdges < 0 ? true : false;
+    //                        }
+    //                        return sumEdges < 0 ? true : false;
                            
-                        }
-                    }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return false;
+    // }
+
+    bool Algorithms::negativeCycle(const Graph& graph){
+    auto adjMatrix = graph.getAdjMatrix();
+    int vertices = (int)adjMatrix.size();
+    vector<int> distances(vertices, std::numeric_limits<int>::max());
+    distances[0] = 0; // Start vertex
+    
+    // Relax edges repeatedly
+    for (int i = 0; i < vertices - 1; ++i) {
+        for (int u = 0; u < vertices; ++u) {
+            for (int v = 0; v < vertices; ++v) {
+                if (adjMatrix[u][v] != 0 && distances[u] != std::numeric_limits<int>::max() && distances[u] + adjMatrix[u][v] < distances[v]) {
+                    distances[v] = distances[u] + adjMatrix[u][v];
                 }
             }
         }
-        return false;
     }
+    
+    // Check for negative cycles
+    for (int u = 0; u < vertices; ++u) {
+        for (int v = 0; v < vertices; ++v) {
+            if (adjMatrix[u][v] != 0 && distances[u] != std::numeric_limits<int>::max() && distances[u] + adjMatrix[u][v] < distances[v]) {
+                return true; // Negative cycle found
+            }
+        }
+    }
+    
+    return false; // No negative cycle found
+}
+
 }
 

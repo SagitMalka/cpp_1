@@ -8,6 +8,9 @@ using std::endl;
 
 namespace ariel{
     void ariel::Graph::loadGraph(const vector<vector<int>> &matrix) {
+        if (matrix.size() == 0) {
+        throw std::invalid_argument("Invalid graph: The graph is empty.");
+    }
         size_t rows = matrix.size();
         for (const auto& row : matrix) {
             if (row.size() != rows) {

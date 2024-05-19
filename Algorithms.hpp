@@ -14,7 +14,7 @@ using std::stack;
 namespace ariel{
     class Algorithms {
     private:
-        static void traverse(int u, const vector<vector<int>>& adjacencyMatrix, unordered_set<int>& visited, size_t v_size);
+        static void traverse(int u, const vector<vector<int>>& adjacencyMatrix, unordered_set<int>& visited, int v_size);
         static vector<int> bellmanFord(const Graph& , int source);
         static ostringstream constructPath(int source, int dest, const std::vector<int>& parents);
         static string ConstructSets(const unordered_set<int>& setA, unordered_set<int> setB);
