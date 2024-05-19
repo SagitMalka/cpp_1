@@ -1,7 +1,10 @@
-#include "Graph.hpp"
+//
+// 209294768 sagitmalka10@gmail.com
+//
 
+#include "Graph.hpp"
 #include <iostream>
-// using namespace std;
+
 using std::cout;
 using std::vector;
 using std::endl;
@@ -37,10 +40,6 @@ namespace ariel{
         this->m_edges = edges;
         cout << "Graph with " << vertices << " vertices and " << edges << " edges." << endl;
 
-    }
-
-    bool Graph::negativeWeights(Graph &graph) {
-        return graph.m_has_negative_weight;
     }
 
     const vector<vector<int>> &Graph::getAdjMatrix() const {
