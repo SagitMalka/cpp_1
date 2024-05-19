@@ -1,3 +1,7 @@
+//
+// 209294768 sagitmalka10@gmail.com
+//
+
 #pragma once
 
 #include <vector>
@@ -9,9 +13,6 @@ namespace ariel{
     class Graph {
     private:
         vector<vector<int>> m_matrix;
-        size_t m_vertices;
-        size_t m_edges;
-        bool m_has_negative_weight = false;
     public:
         void loadGraph(const vector<vector<int>>& matrix);
         void printGraph();
