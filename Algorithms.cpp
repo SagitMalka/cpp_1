@@ -1,7 +1,3 @@
-//
-// Created by SAGIT on 18/05/2024.
-//
-
 #include "Algorithms.hpp"
 #include <unordered_set>
 #include <string>
@@ -44,14 +40,15 @@ namespace ariel{
 
     void Algorithms::traverse(int u, const vector<vector<int>> &adjacencyMatrix, unordered_set<int> &visited, size_t v_size) {
         visited.insert(u);
-        for (int i = 0; i < v_size; ++i) {
+        
+        for (int i = 0; i < (int)v_size; ++i) {
             if (adjacencyMatrix[u][i] && visited.find(i) == visited.end()) {
                 traverse(i, adjacencyMatrix, visited, v_size);
             }
         }
     }
     string Algorithms::shortestPath(const Graph& g, int source, int dest) {
-        const vector<int>& parents = bellmanFord(g, source, dest);
+        const vector<int>& parents = bellmanFord(g, source);
         if(parents[dest] == std::numeric_limits<int>::max()){
             return "-1";
         }
@@ -60,7 +57,7 @@ namespace ariel{
         return oss.str();
 
     }
-    vector<int> Algorithms::bellmanFord(const Graph& graph, int source, int destination) {
+    vector<int> Algorithms::bellmanFord(const Graph& graph, int source) {
         const vector<vector<int>>& adjMatrix = graph.getAdjMatrix();
         int num_of_vertices;
         num_of_vertices = adjMatrix.size();
@@ -220,7 +217,7 @@ namespace ariel{
                 visited[v] = true;
                 auto& edges = adjMatrix[v];
 
-                for (int w = 0; w < edges.size(); ++w) {
+                for (int w = 0; w < (int)edges.size(); ++w) {
                     if (edges[w] != 0) {
                         if (!visited[w]) {
                             v_stack.emplace(w, v);
@@ -265,5 +262,58 @@ namespace ariel{
         return oss;
     }
 
+    
+
+    bool Algorithms::negativeCycle(const Graph& graph){
+        auto adjMatrix = graph.getAdjMatrix();
+        stack<pair<int, int>> v_stack;
+        v_stack.emplace(0, -1);
+        size_t vertices = adjMatrix.size();
+        vector<bool> visited(vertices, false);
+        vector<int> parents(vertices, -1);
+        stack<int> result;
+
+        while (!v_stack.empty()) {
+            int v = v_stack.top().first;
+            int father = v_stack.top().second;
+            v_stack.pop();
+
+            if (!visited[v]) {
+                visited[v] = true;
+                auto& edges = adjMatrix[v];
+
+                for (int w = 0; w < (int)edges.size(); ++w) {
+                    if (edges[w] != 0) {
+                        if (!visited[w]) {
+                            v_stack.emplace(w, v);
+                            parents[w] = v;
+                        } else if (w != father) {
+                            result.push(w);
+                            int current = v;
+                            while (current != w) {
+                               result.push(current);
+                               current = parents[current];
+                           }
+                           result.push(w);
+                           //result.push(v); 
+                            int sumEdges = 0;
+                            while (!result.empty()){
+                                int x = result.top();
+                                result.pop();
+                                if(!result.empty()){
+                                    int y = result.top();
+                                    sumEdges += adjMatrix[x][y];
+                                }
+                                
+                           }
+                           return sumEdges < 0 ? true : false;
+                           
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
 }
 
