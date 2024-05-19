@@ -25,19 +25,14 @@ namespace ariel{
 
     void Graph::printGraph() {
         size_t vertices = this->m_matrix.size();
-        this->m_vertices = vertices;
         size_t edges = 0;
         for (auto & i : this->m_matrix) {
             for (size_t j = 0; j< this->m_matrix.size(); j++) {
                 if(i[j] != 0){
                     edges++;
                 }
-                if(i[j] < 0){
-                    this->m_has_negative_weight = true;
-                }
             }
         }
-        this->m_edges = edges;
         cout << "Graph with " << vertices << " vertices and " << edges << " edges." << endl;
 
     }
@@ -46,8 +41,5 @@ namespace ariel{
         return m_matrix;
     }
 
-    size_t Graph::getNumberOfVertices() {
-        return this->m_vertices;
-    }
 }
 
